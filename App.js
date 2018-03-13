@@ -52,7 +52,7 @@ componentDidMount(){
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          This Update From CodePush
+          This Update From CodePush Final
         </Text>
        <Button title="Code Push Sync" onPress={()=> this.codePushSync()} />
     {this.state.logs.map((log,i) => <Text key={i}>{log}</Text>)}
