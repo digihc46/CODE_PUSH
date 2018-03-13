@@ -30,7 +30,7 @@ constructor(props){
 }
 
 componentDidMount(){
-  this.codePushSync();
+  // this.codePushSync();
 }
 
   codePushSync(){
@@ -41,7 +41,7 @@ componentDidMount(){
     }, (status) => {
       for(var key in CodePush.SyncStatus){
         if (status === CodePush.SyncStatus[key]){
-          this.state(prevState => ({ logs: [...prevState.logs, key.replace(/_/g, ' ')] }));
+          this.setState(prevState => ({ logs: [...prevState.logs, key.replace(/_/g, ' ')] }));
           break;
         }
       }
