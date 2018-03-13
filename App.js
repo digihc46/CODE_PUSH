@@ -26,7 +26,7 @@ export default class App extends Component {
 
 constructor(props){
   super(props);
-  this.state = { logs : []};
+  this.state = { logs : [] };
 }
 
 componentDidMount(){
@@ -35,9 +35,9 @@ componentDidMount(){
 
   codePushSync(){
     this.setState({logs: ['Started At ' + new Date().getTime()]})
-    codePush.sync({
+    CodePush.sync({
       updateDialog: true,
-      installMode: codePush.InstallMode.IMMEDIATE
+      installMode: CodePush.InstallMode.IMMEDIATE
     }, (status) => {
       for(var key in CodePush.SyncStatus){
         if (status === CodePush.SyncStatus[key]){
@@ -52,10 +52,10 @@ componentDidMount(){
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
-          Welcome to React Native!
+          This Update From CodePush
         </Text>
        <Button title="Code Push Sync" onPress={()=> this.codePushSync()} />
-       <Text>{JSON.stringify(this.state.logs)}</Text>
+    {this.state.logs.map((log,i) => <Text key={i}>{log}</Text>)}
       </View>
     );
   }
