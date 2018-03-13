@@ -29,6 +29,10 @@ constructor(props){
   this.state = { logs : []};
 }
 
+componentDidMount(){
+  this.codePushSync();
+}
+
   codePushSync(){
     this.setState({logs: ['Started At ' + new Date().getTime()]})
     codePush.sync({
@@ -38,10 +42,10 @@ constructor(props){
       for(var key in CodePush.SyncStatus){
         if (status === CodePush.SyncStatus[key]){
           this.state(prevState => ({ logs: [...prevState.logs, key.replace(/_/g, ' ')] }));
+          break;
         }
       }
-    }
-    )
+    });
   }
 
   render() {
