@@ -9,8 +9,10 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View
+  View,
+  Button
 } from 'react-native';
+import CodePush from 'react-native-code-push';
 
 const instructions = Platform.select({
   ios: 'Press Cmd+R to reload,\n' +
@@ -19,20 +21,37 @@ const instructions = Platform.select({
     'Shake or press menu button for dev menu',
 });
 
-type Props = {};
-export default class App extends Component<Props> {
+
+export default class App extends Component {
+
+constructor(props){
+  super(props);
+  this.state = { logs : []};
+}
+
+  codePushSync(){
+    this.setState({logs: ['Started At ' + new Date().getTime()]})
+    codePush.sync({
+      updateDialog: true,
+      installMode: codePush.InstallMode.IMMEDIATE
+    }, (status) => {
+      for(var key in CodePush.SyncStatus){
+        if (status === CodePush.SyncStatus[key]){
+          this.state(prevState => ({ logs: [...prevState.logs, key.replace(/_/g, ' ')] }));
+        }
+      }
+    }
+    )
+  }
+
   render() {
     return (
       <View style={styles.container}>
         <Text style={styles.welcome}>
           Welcome to React Native!
         </Text>
-        <Text style={styles.instructions}>
-          To get started, edit App.js
-        </Text>
-        <Text style={styles.instructions}>
-          {instructions}
-        </Text>
+       <Button title="Code Push Sync" onPress={()=> this.codePushSync()} />
+       <Text>{JSON.stringify(this.state.logs)}</Text>
       </View>
     );
   }
