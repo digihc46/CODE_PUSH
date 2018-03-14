@@ -10,37 +10,52 @@ import {
   StyleSheet,
   Text,
   View,
-  Button
+  Button,
+  Image, TouchableHighlight
 } from 'react-native';
-import CodePush from 'react-native-code-push';
+import codePush from 'react-native-code-push';
 
-const instructions = Platform.select({
-  ios: 'Press Cmd+R to reload,\n' +
-    'Cmd+D or shake for dev menu',
-  android: 'Double tap R on your keyboard to reload,\n' +
-    'Shake or press menu button for dev menu',
-});
+const bgProfile = require('./images/apip.jpeg');
 
 
-export default class App extends Component {
+let codePushOptions = { checkFrequency: codePush.CheckFrequency.MANUAL };
+
+
+class App extends Component {
 
 constructor(props){
   super(props);
-  this.state = { logs : [] };
+  this.state = {
+    logs : [], 
+    updateAvailable: false,
+    downloadingUpdate: null,
+    installingUpdate: null,
+    downloadProgress: null,
+  }
 }
 
 componentDidMount(){
-  // this.codePushSync();
+  // codePush.sync({
+  //   updateDialog: true,
+  //   installMode: codePush.InstallMode.IMMEDIATE
+  // });
+    codePush.checkForUpdate().then(update => {
+      if (!update) {
+        this.setState({updateAvailable: false})
+      } else {
+        this.setState({updateAvailable: true})
+      }
+    })
 }
 
   codePushSync(){
     this.setState({logs: ['Started At ' + new Date().getTime()]})
-    CodePush.sync({
+    codePush.sync({
       updateDialog: true,
-      installMode: CodePush.InstallMode.IMMEDIATE
+      installMode: codePush.InstallMode.IMMEDIATE
     }, (status) => {
-      for(var key in CodePush.SyncStatus){
-        if (status === CodePush.SyncStatus[key]){
+      for(var key in codePush.SyncStatus){
+        if (status === codePush.SyncStatus[key]){
           this.setState(prevState => ({ logs: [...prevState.logs, key.replace(/_/g, ' ')] }));
           break;
         }
@@ -48,17 +63,69 @@ componentDidMount(){
     });
   }
 
-  render() {
-    return (
-      <View style={styles.container}>
-        <Text style={styles.welcome}>
-          This Update From CodePush Final
-        </Text>
-       <Button title="Code Push Sync" onPress={()=> this.codePushSync()} />
-    {this.state.logs.map((log,i) => <Text key={i}>{log}</Text>)}
-      </View>
-    );
+  handleUpdate() {
+    const checkUpdateStatus = (status) => {
+        switch (status) {
+            case codePush.SyncStatus.DOWNLOADING_PACKAGE:
+                console.log("STATUS DOWNLOADING_PACKAGE : " + status);
+                this.setState({downloadingUpdate: true});
+                break;
+            case codePush.SyncStatus.INSTALLING_UPDATE:
+            console.log("STATUS INSTALLING_UPDATE : " + status);
+                this.setState({installingUpdate: true, downloadingUpdate: false});
+                break;
+            case codePush.SyncStatus.UPDATE_INSTALLED:
+                console.log("STATUS UPDATE_INSTALLED : " + status);
+                this.setState({installingUpdate: false, downloadingUpdate: false, updateInstalled: true});
+                break;
+        }
+    };
+
+    const downloadProgress = (downloadedBytes, totalBytes) => {
+        this.setState({downloadProgress: (downloadedBytes / totalBytes) * 100})
+    };
+
+    codePush.sync({updateDialog: false, installMode: codePush.InstallMode.IMMEDIATE}, checkUpdateStatus, downloadProgress);
   }
+
+  renderButton(){
+    if (this.state.updateAvailable){
+        return (
+            <View style={{marginTop: 40}}>
+                <Button title="An update is available" onPress={this.handleUpdate.bind(this)} />
+            </View>
+        )
+    }
+  }
+
+  render() {
+    console.log("updateAvailable: "+this.state.updateAvailable);
+    console.log("downloadingUpdate: "+this.state.downloadingUpdate);
+    console.log("installingUpdate: "+this.state.installingUpdate);
+    console.log("downloadProgress: "+this.state.downloadProgress);
+    console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
+
+    return (
+        <View style={styles.container}>
+            <Text>STATUS UPDATE : {this.state.updateAvailable} </Text>
+            {this.renderButton()}
+        </View>
+    )
+}
+
+
+  // render() {
+  //   return (
+  //     <View style={styles.container}>
+  //     {/* <Image source={bgProfile}></Image> */}
+  //       <Text style={styles.welcome}>
+  //         NEW UPDATE  FINAL
+  //       </Text>
+  //      <Button title="Code Push Sync" onPress={()=> this.codePushSync()} />
+  //   {this.state.logs.map((log,i) => <Text key={i}>{log}</Text>)}
+  //     </View>
+  //   );
+  // }
 }
 
 const styles = StyleSheet.create({
@@ -79,3 +146,6 @@ const styles = StyleSheet.create({
     marginBottom: 5,
   },
 });
+
+App = codePush(codePushOptions)(App);
+export default App;
