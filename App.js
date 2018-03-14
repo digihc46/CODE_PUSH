@@ -46,6 +46,7 @@ componentDidMount(){
           this.setState({updateAvailable: false});
         
       } else {
+        this.setState({updateAvailable: true});
           this.handleUpdate();
       }
     })
@@ -122,7 +123,7 @@ componentDidMount(){
     if (this.state.updateAvailable){
       return (
         <View>
-          <Text>PROGRESS UPDATE SS: {this.state.stats}</Text>
+          <Text>PROGRESS UPDATE: {this.state.stats}</Text>
           <Text>{this.state.progress != null ? this.state.progress : null}</Text>
         </View>
         )
