@@ -27,10 +27,12 @@ constructor(props){
   super(props);
   this.state = {
     logs : [], 
-    updateAvailable: false,
+    updateAvailable: true,
     downloadingUpdate: null,
     installingUpdate: null,
-    downloadProgress: null,
+    progress: null,
+    downloadedBytes: 0,
+    stats: "init"
   }
 }
 
@@ -41,9 +43,10 @@ componentDidMount(){
   // });
     codePush.checkForUpdate().then(update => {
       if (!update) {
-        this.setState({updateAvailable: false})
+          this.setState({updateAvailable: false});
+        
       } else {
-        this.setState({updateAvailable: true})
+          this.handleUpdate();
       }
     })
 }
@@ -67,50 +70,65 @@ componentDidMount(){
     const checkUpdateStatus = (status) => {
         switch (status) {
             case codePush.SyncStatus.DOWNLOADING_PACKAGE:
-                console.log("STATUS DOWNLOADING_PACKAGE : " + status);
-                this.setState({downloadingUpdate: true});
-                break;
+              this.setTimeout(() => {
+                this.setState({
+                  downloadingUpdate: true,
+                  stats: "STATUS DOWNLOADING_PACKAGE : "
+                });
+              
+              }, 1000);
+              break;
+
             case codePush.SyncStatus.INSTALLING_UPDATE:
-            console.log("STATUS INSTALLING_UPDATE : " + status);
-                this.setState({installingUpdate: true, downloadingUpdate: false});
-                break;
+              this.setTimeout(() => {
+                this.setState({
+                  installingUpdate: true, downloadingUpdate: false,
+                  stats: "STATUS INSTALLING_UPDATE : "
+                });
+              }, 1000);
+              break;
             case codePush.SyncStatus.UPDATE_INSTALLED:
-                console.log("STATUS UPDATE_INSTALLED : " + status);
-                this.setState({installingUpdate: false, downloadingUpdate: false, updateInstalled: true});
-                break;
+              this.setTimeout(() => {
+                this.setState({
+                  installingUpdate: false, downloadingUpdate: false, updateInstalled: true,
+                  stats: "STATUS UPDATE_INSTALLED : "
+                });
+
+              }, 1000);
+              break;
         }
     };
 
-    const downloadProgress = (downloadedBytes, totalBytes) => {
-        this.setState({downloadProgress: (downloadedBytes / totalBytes) * 100})
-    };
+    var onDownloadProgress = function (downloadProgress) {
+      if (downloadProgress) {
+          this.setState({ progress:  "Downloading " + downloadProgress.receivedBytes + " of " + downloadProgress.totalBytes});
+      }
+  };
 
-    codePush.sync({updateDialog: false, installMode: codePush.InstallMode.IMMEDIATE}, checkUpdateStatus, downloadProgress);
+    codePush.sync({updateDialog: false, installMode: codePush.InstallMode.IMMEDIATE}, checkUpdateStatus, onDownloadProgress);
   }
 
   renderButton(){
     if (this.state.updateAvailable){
         return (
             <View style={{marginTop: 40}}>
-                <Button title="An update is available" onPress={this.handleUpdate.bind(this)} />
+                <Button title="DOWNLOAD UPDATE" onPress={this.handleUpdate.bind(this)} />
             </View>
         )
     }
   }
 
   render() {
-    console.log("updateAvailable: "+this.state.updateAvailable);
-    console.log("downloadingUpdate: "+this.state.downloadingUpdate);
-    console.log("installingUpdate: "+this.state.installingUpdate);
-    console.log("downloadProgress: "+this.state.downloadProgress);
-    console.log("+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
-
-    return (
-        <View style={styles.container}>
-            <Text>STATUS UPDATE : {this.state.updateAvailable} </Text>
-            {this.renderButton()}
+    if (this.state.updateAvailable){
+      return (
+        <View>
+          <Text>PROGRESS UPDATE SS: {this.state.stats}</Text>
+          <Text>{this.state.progress != null ? this.state.progress : null}</Text>
         </View>
-    )
+        )
+    } else {
+      return (<Text>THERE IS NO UPDATE</Text>)
+    }
 }
 
 
